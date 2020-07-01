@@ -1,0 +1,32 @@
+{
+  "name": "mysterious-comments",
+  "version": "1.0.0",
+  "description": "a simple API in node to store anonymous comments in a SQL db, only GET, POST and DELETE available",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "build": "rimraf dist/ && babel ./ --out-dir dist/ --ignore ./node_modules,./.babelrc,./package.json,./npm-debug.log --copy-files",
+    "start": "npm run build && node dist/src/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alfovo/mysterious-comments.git"
+  },
+  "author": "alfovo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/alfovo/mysterious-comments/issues"
+  },
+  "homepage": "https://github.com/alfovo/mysterious-comments#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.10.4",
+    "@babel/core": "^7.10.4",
+    "@babel/preset-env": "^7.10.4",
+    "rimraf": "^3.0.2"
+  },
+  "dependencies": {
+    "@babel/polyfill": "^7.10.4",
+    "dotenv": "^8.2.0",
+    "mysql": "^2.18.1"
+  }
+}

@@ -1,0 +1,7 @@
+CREATE DATABASE mystery CHARACTER SET utf8 COLLATE utf8_general_ci;
+
+CREATE TABLE comments (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  contents varchar(50),
+  PRIMARY KEY (id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=5;
