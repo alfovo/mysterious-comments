@@ -1,12 +1,39 @@
 # mysterious-comments
 
-a simple API in node to store anonymous comments in a SQL db, only GET, POST and DELETE available
+a simple API in node to store anonymous comments in a SQL db, only GET, POST and DELETE available.
 
-Uses:
+## Prerequisites
 
-- a simple cache layer (redis)
-- Grapql
-- look ma, no express!
+To run, please first create a `.env` file at the top level of your directory and set the following variables to allow the app to connect with MySQL. You can copy the variables from the `config/example.env` file into a new `.env` file and them set them:
+
+- DB_HOST
+- DB_USERNAME
+- DB_PASSWORD
+- DB_NAME
+
+If you don't set DB_NAME it will default to a database called `comments_mc_vice`. You can also set `REDIS_HOST` and `REDIS_PORT` if you'd like to use something other than the default 'localhost' and '6379' for port and host respectively.
+
+Once you have set the env variables above and you have installed the dependencies via `npm install`, please run:
+
+```
+npx knex migrate:latest
+```
+
+to set up your database with the `comment` table.
+
+## To run
+
+You can run the app with:
+
+```
+npm run start
+```
+
+And to run the tests, run:
+
+```
+npm run test
+```
 
 ## Why I chose MySQL over PostgreSQL
 
