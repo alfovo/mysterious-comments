@@ -1,18 +1,15 @@
-import express from 'express'
-import bodyParser from 'body-parser'
+import Koa from 'koa'
+import bodyParser from 'koa-bodyparser'
 import commentRouter from './routes/comment.routes.js'
-import redisClient from './config/redis'
+import dotenv from 'dotenv'
+dotenv.config()
 
-const app = express()
-app.use(express.static('public'))
-app.use(bodyParser.json())
+const app = new Koa()
+const port = process.env.APP_PORT || '7555'
 
-redisClient.on('connect', function () {
-  console.log('redis is connected')
-})
+app.use(bodyParser())
+app.use(commentRouter.routes())
 
-commentRouter(app, redisClient)
-
-app.listen(7555, () => {
-  console.log('Server running on http://localhost:7555')
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`)
 })

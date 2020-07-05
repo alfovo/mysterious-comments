@@ -1,14 +1,19 @@
+import Router from 'koa-router'
 import CommentController from '../controllers/comment.controller.js'
 
 const commentController = new CommentController()
+const router = new Router()
 
-export default function commentRouter(app) {
-  // Create a new Comment
-  app.post('/comments', commentController.create)
+// Create a new Comment
+router.post('/comments', commentController.create)
+//
+// Retrieve all Comments
+router.get('/comments', commentController.getAll)
 
-  // Retrieve all Comments
-  app.get('/comments', commentController.getAll)
+// Retrieve a specified Comment with commentId
+router.get('/comments/:commentId', commentController.get)
 
-  // Delete a Comment with commentId
-  app.delete('/comments/:commentId', commentController.remove)
-}
+// Delete a Comment with commentId
+router.delete('/comments/:commentId', commentController.remove)
+
+export default router

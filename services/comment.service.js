@@ -1,18 +1,33 @@
 import knex from '../config/knexfile'
-import redisClient from './config/redis'
+import redisClient from '../config/redis'
 
 export default class CommentService {
-  create(content) {
+  async create(content) {
     return knex('comment').insert({
       content,
     })
   }
 
-  getAll() {
+  async getAll() {
     return knex.select().table('comment')
   }
 
-  remove(id) {
-    return knex('comment').where('id', id).del()
+  async get(id) {
+    const cachedComment = await redisClient.getAsync(id)
+    if (cachedComment) {
+      return JSON.parse(cachedComment)
+    } else {
+      const dbComment = await knex('comment').where('id', id)
+      if (dbComment.length) {
+        await redisClient.set(id, JSON.stringify(dbComment))
+        return dbComment
+      } else return
+    }
+  }
+
+  async remove(id) {
+    const deleted = await knex('comment').where('id', id).del()
+    await redisClient.delAsync(id)
+    return deleted
   }
 }

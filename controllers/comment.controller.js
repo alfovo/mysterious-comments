@@ -2,60 +2,88 @@ import CommentService from '../services/comment.service'
 
 export default class CommentController {
   // Create a new Comment.
-  async create(req, res) {
-    if (!req.body.content) {
-      res.status(400).send({
+  async create(ctx) {
+    if (!ctx.request.body.content) {
+      ctx.status = 400
+      ctx.body = {
         message: 'Content can not be empty.',
-      })
+      }
       return
     }
     const commentService = new CommentService()
     try {
-      const commentId = await commentService.create(req.body.content)
-      res.send({
+      const commentId = await commentService.create(ctx.request.body.content)
+      ctx.body = {
         message: `Comment ${commentId} successfully added to database`,
-      })
+      }
     } catch (err) {
-      res.status(500).send({
+      ctx.status = 500
+      ctx.body = {
         message:
           err.message || 'Some error occurred while creating the comment.',
-      })
+      }
     }
   }
 
   // Retrieve all Comments from the database.
-  async getAll(req, res) {
+  async getAll(ctx) {
     const commentService = new CommentService()
     try {
-      res.json(await commentService.getAll())
+      ctx.body = await commentService.getAll()
     } catch (err) {
-      res.status(500).send({
+      ctx.status = 500
+      ctx.body = {
         message:
           err.message || 'Some error occurred while retrieving comments.',
+      }
+    }
+  }
+
+  // Retrieve a Comment with a specified commentId.
+  async get(ctx) {
+    const commentService = new CommentService()
+    try {
+      const comment = await commentService.get(ctx.params.commentId)
+      if (!comment) {
+        ctx.status = 404
+        ctx.body = {
+          message: `Comment with id ${ctx.params.commentId} not found.`,
+        }
+      } else {
+        ctx.body = comment
+      }
+    } catch (err) {
+      console.log(err)
+      ctx.status(500).body({
+        message: `Could not get comment with id ${ctx.params.commentId}.`,
       })
     }
   }
 
   // Delete a Comment with a specified commentId.
-  async remove(req, res) {
+  async remove(ctx) {
     const commentService = new CommentService()
     try {
-      const deleted = await commentService.remove(req.params.commentId)
+      const deleted = await commentService.remove(ctx.params.commentId)
       if (deleted === 1)
-        res.send({ message: 'Comment was deleted successfully.' })
+        ctx.body = { message: 'Comment was deleted successfully.' }
       else if (deleted === 0) {
-        res.status(404).send({
-          message: `Comment with id ${req.params.commentId} not found.`,
-        })
+        ctx.status = 404
+        ctx.body = {
+          message: `Comment with id ${ctx.params.commentId} not found.`,
+        }
       } else {
-        res.status(500).send({
-          message: `Some unexpected behavior occured when deleting comment ${req.params.commentId}.`,
-        })
+        ctx.status = 500
+        ctx.body = {
+          message: `Some unexpected behavior occured when deleting comment ${ctx.params.commentId}.`,
+        }
       }
     } catch (err) {
-      res.status(500).send({
-        message: `Could not delete comment with id ${req.params.commentId}.`,
-      })
+      console.log(err)
+      ctx.status = 500
+      ctx.body = {
+        message: `Could not delete comment with id ${ctx.params.commentId}.`,
+      }
     }
   }
 }
