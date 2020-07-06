@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest",
     "start": "nodemon --exec babel-node index.js",
-    "migrations": "knex migrate:latest"
+    "migrations": "knex  migrate:latest"
   },
   "repository": {
     "type": "git",
@@ -31,11 +31,15 @@
   "dependencies": {
     "@babel/polyfill": "^7.10.4",
     "dotenv": "^8.2.0",
+    "graphql": "^15.2.0",
+    "graphql-iso-date": "^3.6.1",
+    "ioredis": "^4.17.3",
     "knex": "^0.21.1",
     "koa": "^2.13.0",
     "koa-bodyparser": "^4.3.0",
+    "koa-graphql": "^0.8.0",
     "koa-router": "^9.1.0",
     "mysql": "^2.18.1",
-    "redis": "^3.0.2"
+    "supertest": "^4.0.2"
   }
 }

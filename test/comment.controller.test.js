@@ -1,12 +1,19 @@
-import CommentService from '../services/comment.service'
-import CommentController from '../controllers/comment.controller'
-jest.mock('../services/comment.service')
+import CommentService from '../src/services/comment.service'
+import CommentController from '../src/controllers/comment.controller'
+jest.mock('../src/services/comment.service')
+
+function mockContext() {
+  const ctx = {}
+  ctx.status = jest.fn().mockReturnValue(ctx)
+  ctx.body = jest.fn().mockReturnValue(ctx)
+  return ctx
+}
 
 function mockRequest() {
-  const req = {}
-  req.body = jest.fn().mockReturnValue(req)
-  req.params = jest.fn().mockReturnValue(req)
-  return req
+  const request = {}
+  request.body = jest.fn().mockReturnValue(request)
+  request.params = jest.fn().mockReturnValue(request)
+  return request
 }
 
 function mockResponse() {
@@ -18,7 +25,7 @@ function mockResponse() {
 }
 
 describe('commentController', () => {
-  let req, res, commentController, testData, commentId, fakeError
+  let commentController, testData, commentId, fakeError, ctx, request, res, red
 
   beforeAll(() => {
     testData = [
@@ -46,12 +53,14 @@ describe('commentController', () => {
   })
 
   beforeEach(() => {
-    req = mockRequest()
-    req.params.id = 1
+    request = mockRequest()
     res = mockResponse()
+    ctx = { request, res }
+    ctx.params = {}
     CommentService.mockImplementation(() => {
       return {
         getAll: () => Promise.resolve(testData),
+        get: () => Promise.resolve(testData[0]),
         create: (content) => Promise.resolve(commentId),
         remove: () => Promise.resolve(1),
       }
@@ -60,10 +69,8 @@ describe('commentController', () => {
   })
 
   it('can get all comments', async () => {
-    await commentController.getAll(req, res)
-    expect(res.json).toHaveBeenCalledTimes(1)
-    expect(res.json.mock.calls.length).toBe(1)
-    expect(res.json).toHaveBeenCalledWith(testData)
+    await commentController.getAll(ctx)
+    expect(ctx.body).toBe(testData)
   })
 
   it('returns error if it cannot get all comments', async () => {
@@ -75,30 +82,23 @@ describe('commentController', () => {
       }
     })
 
-    await commentController.getAll(req, res)
-    expect(res.send).toHaveBeenCalledTimes(1)
-    expect(res.send.mock.calls.length).toBe(1)
-    expect(res.status).toHaveBeenCalledWith(500)
-    expect(res.send).toHaveBeenCalledWith({ message: fakeError })
+    await commentController.getAll(ctx)
+    expect(ctx.body.message).toBe(fakeError)
   })
 
   it('will not create an empty comment', async () => {
-    await commentController.create(req, res)
-    expect(res.status).toHaveBeenCalledWith(400)
-    expect(res.send).toHaveBeenCalledWith({
-      message: 'Content can not be empty.',
-    })
+    await commentController.create(ctx)
+    expect(ctx.status).toBe(400)
+    expect(ctx.body.message).toBe('Content can not be empty.')
   })
 
   it('can create a comment', async () => {
     const newComment = 'I have the information you seek.'
-    req.body.content = newComment
-    await commentController.create(req, res)
-    expect(res.send).toHaveBeenCalledTimes(1)
-    expect(res.send.mock.calls.length).toBe(1)
-    expect(res.send).toHaveBeenCalledWith({
-      message: `Comment ${commentId} successfully added to database`,
-    })
+    ctx.request.body.content = newComment
+    await commentController.create(ctx)
+    expect(ctx.body.message).toBe(
+      `Comment ${commentId} successfully added to database.`
+    )
   })
 
   it('returns general error when it cannot create a comment', async () => {
@@ -109,22 +109,33 @@ describe('commentController', () => {
         },
       }
     })
-    req.body.content = 'I have the information you seek.'
-    await commentController.create(req, res)
-    expect(res.status).toHaveBeenCalledWith(500)
-    expect(res.send).toHaveBeenCalledTimes(1)
-    expect(res.send.mock.calls.length).toBe(1)
-    expect(res.send).toHaveBeenCalledWith({ message: fakeError })
+    ctx.request.body.content = 'I have the information you seek.'
+    await commentController.create(ctx)
+    expect(ctx.status).toBe(500)
+    expect(ctx.body.message).toBe(fakeError)
+  })
+
+  it('can get a comment by id', async () => {
+    ctx.params.id = commentId
+    await commentController.get(ctx)
+    expect(ctx.body).toBe(testData[0])
+  })
+
+  it('returns 404 with useful error when cannot find comment', async () => {
+    CommentService.mockImplementation(() => {
+      return {
+        get: () => Promise.resolve(0),
+      }
+    })
+    ctx.params.id = commentId
+    await commentController.get(ctx)
+    expect(ctx.body.message).toBe(`Comment with id ${commentId} not found.`)
   })
 
   it('can delete a comment', async () => {
-    req.params.commentId = commentId
-    await commentController.remove(req, res)
-    expect(res.send).toHaveBeenCalledTimes(1)
-    expect(res.send.mock.calls.length).toBe(1)
-    expect(res.send).toHaveBeenCalledWith({
-      message: 'Comment was deleted successfully.',
-    })
+    ctx.params.id = commentId
+    await commentController.remove(ctx)
+    expect(ctx.body.message).toBe('Comment was deleted successfully.')
   })
 
   it('returns 404 with useful error when cannot find comment to delete', async () => {
@@ -133,14 +144,10 @@ describe('commentController', () => {
         remove: () => Promise.resolve(0),
       }
     })
-    req.params.commentId = commentId
-    await commentController.remove(req, res)
-    expect(res.status).toHaveBeenCalledWith(404)
-    expect(res.send).toHaveBeenCalledTimes(1)
-    expect(res.send.mock.calls.length).toBe(1)
-    expect(res.send).toHaveBeenCalledWith({
-      message: `Comment with id ${commentId} not found.`,
-    })
+    ctx.params.id = commentId
+    await commentController.remove(ctx)
+    expect(ctx.status).toBe(404)
+    expect(ctx.body.message).toBe(`Comment with id ${commentId} not found.`)
   })
 
   it('returns general error when cannot delete a comment', async () => {
@@ -151,13 +158,11 @@ describe('commentController', () => {
         },
       }
     })
-    req.params.commentId = commentId
-    await commentController.remove(req, res)
-    expect(res.status).toHaveBeenCalledWith(500)
-    expect(res.send).toHaveBeenCalledTimes(1)
-    expect(res.send.mock.calls.length).toBe(1)
-    expect(res.send).toHaveBeenCalledWith({
-      message: `Could not delete comment with id ${commentId}.`,
-    })
+    ctx.params.id = commentId
+    await commentController.remove(ctx)
+    expect(ctx.status).toBe(500)
+    expect(ctx.body.message).toBe(
+      `Could not delete comment with id ${commentId}.`
+    )
   })
 })
