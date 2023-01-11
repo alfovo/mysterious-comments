@@ -34,7 +34,7 @@
     "graphql": "^15.2.0",
     "graphql-iso-date": "^3.6.1",
     "ioredis": "^4.17.3",
-    "knex": "^0.21.1",
+    "knex": "^2.4.0",
     "koa": "^2.13.0",
     "koa-bodyparser": "^4.3.0",
     "koa-graphql": "^0.8.0",
